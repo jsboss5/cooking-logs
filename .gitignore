@@ -103,4 +103,4 @@ dist
 # TernJS port file
 .tern-port
 
-chefin/settings.py
+chefin/chefin/settings.py
