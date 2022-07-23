@@ -5,13 +5,13 @@ from .serializers import MealSerializer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-
-# Create your views here.
-@api_view(['GET', 'POST'])
-def meal_list(request):
+from rest_framework.views import APIView
 
 
-    if request.method == "GET":
+
+class MealList(APIView):
+
+    def get(self, request, format=None):
         # get all the drinks from the db
         meals = Meal.objects.all()
 
@@ -21,7 +21,7 @@ def meal_list(request):
         # return the json
         return Response(serializer.data)
 
-    if request.method == "POST":
+    def post(self, request):
         serializer = MealSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -31,28 +31,39 @@ def meal_list(request):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def meal_detail(request, id):
 
-    try:
-        meal = Meal.objects.get(pk=id)
+class MealDetail(APIView):
 
-    except Meal.DoesNotExist:
+    def _check_if_meal_exists(self, id):
+
+        return Meal.objects.filter(pk=id).exists()
+
+
+    def get(self, request, id):
+        # get all the drinks from the db
+        if self._check_if_meal_exists(id):
+            meal = Meal.objects.get(pk=id)
+            serializer = MealSerializer(meal, many=False)
+            return Response(serializer.data)
+
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    if request.method == "GET":
-        # get all the drinks from the db
-        serializer = MealSerializer(meal, many=False)
-        return Response(serializer.data)
+    def put(self, request, id):
 
-    elif request.method == "PUT":
-        serializer = MealSerializer(meal, data=request.data)
-        if serializer.is_valid(): 
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        if self._check_if_meal_exists(id):
+            meal = Meal.objects.get(pk=id)
+            serializer = MealSerializer(meal, data=request.data)
+            if serializer.is_valid(): 
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
-    elif request.method == "DELETE":
-        meal.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete(self, request, id):
+        if self._check_if_meal_exists(id):
+            meal = Meal.objects.get(pk=id)
+            meal.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        return Response(status=status.HTTP_404_NOT_FOUND)
