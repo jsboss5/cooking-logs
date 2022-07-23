@@ -19,6 +19,8 @@ class Profile(models.Model):
             img.thumbnail(output_size)
             img.save(self.image.path)
 
+    class Meta:
+        db_table = 'Profiles'
 
 class Meal(models.Model):
     title = models.CharField(max_length=150)
@@ -37,3 +39,6 @@ class Meal(models.Model):
             output_size = (500,500)
             img.thumbnail(output_size)
             img.save(self.image.path)
+
+    class Meta:
+        db_table = 'Meals'
